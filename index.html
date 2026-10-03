@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Época Especial II — Simulador de Transição de Planos (MIMED)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --ink:#1a1a1a; --muted:#5b5b5b; --line:#e2e2e2;
+  --yellow:#ffda1a; --soft:#fff6c4; --ok:#1f7a45; --okbg:#e6f4ec; --warn:#8a5a00; --warnbg:#fff1d6; --bad:#a3271f; --badbg:#fbe9e7;
+  --card:#ffffff; --chip:#f4f4f4;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1b19; --ink:#f1f1f1; --muted:#b4b4b4; --line:#3a3936;
+    --soft:#3a3412; --okbg:#173325; --ok:#7fd3a2; --warnbg:#3a2d12; --warn:#f2c46b; --badbg:#3d1c19; --bad:#f19a91;
+    --card:#24231f; --chip:#2e2d29;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1b19; --ink:#f1f1f1; --muted:#b4b4b4; --line:#3a3936;
+  --soft:#3a3412; --okbg:#173325; --ok:#7fd3a2; --warnbg:#3a2d12; --warn:#f2c46b; --badbg:#3d1c19; --bad:#f19a91;
+  --card:#24231f; --chip:#2e2d29;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Work Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px 48px}
+header.band{background:var(--yellow);color:#1a1a1a}
+header.band .wrap{padding-top:28px;padding-bottom:22px}
+header h1{font-size:1.65rem;line-height:1.15;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+header p{margin:0;font-size:.98rem;max-width:58ch}
+.mode{display:flex;gap:0;margin:22px 0 8px;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.mode button{flex:1;font:inherit;font-weight:600;font-size:.95rem;padding:12px 10px;border:0;background:transparent;color:var(--ink);cursor:pointer;line-height:1.25}
+.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.mode button:focus-visible,.seg button:focus-visible,.uc:focus-visible,select:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+h2{font-size:1.2rem;margin:30px 0 8px;font-weight:700}
+h3{font-size:1rem;margin:20px 0 8px;font-weight:600}
+.hint{color:var(--muted);font-size:.92rem;margin:0 0 12px}
+label.field{display:block;font-weight:600;margin:16px 0 6px}
+select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:100%;max-width:420px}
+.year{margin:14px 0 4px;font-weight:600;font-size:.95rem;color:var(--muted)}
+.ucgrid{display:flex;flex-wrap:wrap;gap:8px}
+details.yr{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card)}
+details.yr>summary{cursor:pointer;font-weight:600;padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;list-style:none}
+details.yr>summary::-webkit-details-marker{display:none}
+details.yr>summary::after{content:"+";font-weight:700;font-size:1.1rem}
+details.yr[open]>summary::after{content:"−"}
+details.yr[open]{padding-bottom:12px}
+.cnt{font-size:.78rem;font-weight:600;background:var(--yellow);color:#1a1a1a;border-radius:999px;padding:2px 8px;margin-left:auto}
+.cnt:empty{display:none}
+.pondbox{margin-top:6px;font-size:.88rem;padding:6px 10px;border-radius:8px;background:var(--warnbg);color:var(--ink)}
+.uc{font:inherit;font-size:.9rem;text-align:left;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer;line-height:1.3}
+.uc small{display:block;color:var(--muted);font-size:.75rem}
+.uc[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:#1a1a1a}
+.uc[aria-pressed="true"] small{color:#3a3a3a}
+.panel{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;background:var(--card)}
+.route{display:grid;grid-template-columns:1fr;gap:10px}
+.exam{border-left:6px solid var(--yellow);padding:12px 14px;background:var(--soft);border-radius:0 10px 10px 0}
+.exam .lbl{font-size:.8rem;color:var(--muted)}
+.exam .t{font-weight:700;font-size:1.02rem}
+.gives{margin:10px 0 0;padding:0;list-style:none}
+.gives li{padding:7px 0;border-top:1px dashed var(--line);font-size:.93rem}
+.gives li:first-child{border-top:0}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.tag.ins{background:var(--ink);color:var(--bg)}
+.tag.cred{background:var(--okbg);color:var(--ok)}
+.tag.pond{background:var(--warnbg);color:var(--warn)}
+.note{font-size:.88rem;color:var(--muted);margin-top:4px}
+.box{border-radius:10px;padding:12px 14px;margin:10px 0;font-size:.93rem}
+.box.ok{background:var(--okbg);color:var(--ink)}
+.box.warn{background:var(--warnbg);color:var(--ink)}
+.box.bad{background:var(--badbg);color:var(--ink)}
+.box>strong{display:block;margin-bottom:2px}
+.final{border:2px solid var(--ink);border-radius:12px;padding:16px;margin:18px 0}
+.final h3{margin-top:0}
+.final ol{margin:6px 0 0;padding-left:22px}
+.send{border-radius:12px;padding:16px;margin:18px 0;background:var(--yellow);color:#1a1a1a}
+.send h3{margin:0 0 6px}
+.send p{margin:6px 0;font-size:.93rem}
+.send .btn{border-color:#1a1a1a;color:#1a1a1a;margin-right:8px;display:inline-block;text-decoration:none}
+.send .btn.primary{background:#1a1a1a;color:#ffda1a}
+.send .btn[disabled]{opacity:.45;cursor:not-allowed}
+.send .small{font-size:.82rem}
+.final li{margin:4px 0}
+.btn{font:inherit;font-weight:600;font-size:.9rem;padding:9px 14px;border-radius:8px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;margin-top:12px}
+.choice{margin:8px 0 0}
+.choice label{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:.93rem;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{flex:1 1 auto;font:inherit;font-size:.82rem;padding:7px 10px;border:0;background:var(--chip);color:var(--ink);cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"].s-aprovada{background:var(--okbg);color:var(--ok);font-weight:600}
+.seg button[aria-pressed="true"].s-atraso{background:var(--yellow);color:#1a1a1a;font-weight:600}
+.seg button[aria-pressed="true"].s-nao{background:var(--ink);color:var(--bg);font-weight:600}
+.orig{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.orig .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-top:1px dashed var(--line)}
+.orig .row:first-child{border-top:0}
+.orig .nm{font-size:.92rem}
+.orig .seg,#opt39{display:flex;width:100%;max-width:460px}
+.optrow{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+.optrow .nm{font-size:.92rem;margin-bottom:4px}
+.optrow .nm small{color:var(--muted)}
+.orig .nm small{color:var(--muted)}
+.ucres h4{margin:0 0 4px;font-size:1rem}
+.empty{color:var(--muted);font-style:italic}
+details.rules{margin:26px 0 0;border-top:1px solid var(--line);padding-top:14px}
+summary{cursor:pointer;font-weight:600}
+details ul{padding-left:20px;font-size:.92rem}
+details li{margin:6px 0}
+footer{color:var(--muted);font-size:.82rem;margin-top:28px}
+@media (min-width:640px){header h1{font-size:2rem}}
+@media (prefers-reduced-motion:no-preference){.panel,.final{animation:none}}
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <h1>Época Especial II e a Transição para o Plano 2026</h1>
+    <p>Diz-nos que UCs ficaram por fazer em 2025/2026. Este simulador mostra que exames tens de fazer, a que UCs do novo plano isso corresponde e em que UCs tens de te inscrever.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="mode" role="group" aria-label="Modo">
+    <button id="mA" aria-pressed="true">Tenho UCs do plano antigo por fazer</button>
+    <button id="mB" aria-pressed="false">Quero saber como fazer UCs do novo plano</button>
+  </div>
+
+  <!-- MODO A -->
+  <section id="secA">
+    <h2>Que UCs do plano antigo (2021) ficaram por fazer?</h2>
+    <p class="hint">Abre cada ano e seleciona apenas as UCs a que <strong>reprovaste, mas em que tens frequência</strong>. Ter frequência significa que cumpriste os requisitos da UC (por exemplo, assiduidade e/ou nota mínima na avaliação distribuída) para ser admitido a exame final. Todas as UCs que não selecionares contam como concluídas.</p>
+    <div id="listA"></div>
+
+    <div id="resA"></div>
+  </section>
+
+  <!-- MODO B -->
+  <section id="secB" hidden>
+    <h2>UCs do Plano 2026 que tens por fazer</h2>
+    <p class="hint">Abre cada ano e escolhe as UCs do novo plano que te faltam. Para cada uma, diz-nos depois como correu nas UCs do plano antigo que lhe correspondem.</p>
+    <div id="listB"></div>
+    <div id="resB"></div>
+  </section>
+
+  <details class="rules">
+    <summary>Como funciona e o que precisas de saber</summary>
+    <ul>
+      <li>Os exames são sempre sobre a <strong>matéria e as regras de avaliação de 2025/2026</strong>, ou seja, da UC do plano antigo que te falta. Não tens de estudar matéria nova.</li>
+      <li>Como as UCs do plano antigo já não existem, tens de te inscrever na Época Especial II nas <strong>UCs do novo plano</strong> indicadas no resumo. A nota do exame é lançada em cada uma delas.</li>
+      <li>Se um exame der equivalência a várias UCs, fazes esse exame <strong>uma única vez</strong>.</li>
+      <li>A inscrição é feita pela <strong>Unidade de Gestão Académica</strong>, a partir do pedido que enviares através do formulário no fim do resumo.</li>
+      <li>Quando uma UC nova resulta de mais do que uma UC antiga, a nota resulta de uma <strong>ponderação a definir pela regência</strong> entre essas UCs. Essas regras ainda não estão fixadas.</li>
+      <li>Esta ferramenta é uma simulação para te ajudar a planear. Em caso de dúvida, confirma com a Unidade de Gestão Académica.</li>
+    </ul>
+  </details>
+  <footer>Com base nas regras de correspondência entre o Plano 2021 e o Plano 2026 do MIMED. Regime sujeito a aprovação final.</footer>
+</main>
+
+<script>
+/* ---------- DADOS ---------- */
+const P21 = [
+ ["MI119","Anatomia I",9,1],["MI120","Estrutura Molecular da Célula",7,1],["MI121","Genética Molecular",7,1],["MI122","Introdução à Epidemiologia",4,1],["MI123","Humanidades em Medicina",3,1],
+ ["MI124","Anatomia II",9,1],["MI125","Metabolismo Humano",9,1],["MI126","Dinâmica Molecular da Célula",6,1],["MI127","Saúde das Populações",3,1],["MI128","Citogenética e Ciclo Celular",3,1],
+ ["MI232","Fisiologia I",9,2],["MI233","Histologia I",5,2],["MI234","Neuroanatomia",6,2],["MI235","DECIDES I",4,2],["MI236","Psicologia Médica I",3,2],["MI237","Medicina Preventiva",3,2],
+ ["MI238","Fisiologia II",7,2],["MI239","Histologia II. Embriologia",6,2],["MI240","Radiologia e Imagem Médica I: Anatomia Radiológica",3,2],["MI241","DECIDES II",4,2],["MI242","Psicologia Médica II",3,2],["MI243","Imunologia Básica",5,2],
+ ["MI331","Biopatologia I",8,3],["MI332","Farmacologia I",6,3],["MI333","Microbiologia Médica I",4,3],["MI334","Propedêutica Médica",6,3],["MI335","Imunologia Clínica",4,3],
+ ["MI336","Biopatologia II",7,3],["MI337","Farmacologia II",6,3],["MI338","Microbiologia Médica II",5,3],["MI339","Propedêutica Cirúrgica",6,3],["MI340","Genética Clínica",3,3],["MI341","Bioética e Deontologia Médica",3,3],
+ ["MI432","Doenças Cardiovasculares",8.5,4],["MI433","Neurologia e Neurocirurgia",6,4],["MI434","Doenças Endócrinas, Nutrição e Metabolismo",5,4],["MI435","Doenças Respiratórias e do Tórax",4.5,4],["MI436","Reumatologia",3,4],
+ ["MI437","Cirurgia Geral",8,4],["MI438","Oftalmologia",3,4],["MI439","Ortopedia, Traumatologia e Cirurgia Plástica",6,4],["MI440","Otorrinolaringologia",3,4],["MI441","Dermatologia e Venereologia",3,4],
+ ["MI442","Terapêutica e Farmacologia Clínica I",3,4],["MI443","Medicina Geral e Familiar",3,4],["MI444","DECIDES III",4,4],
+ ["MI531","Ginecologia/Obstetrícia",8,5],["MI532","Nefrologia e Urologia",5.5,5],["MI533","Doenças Infeciosas",3,5],["MI534","Doenças Oncológicas e Hematológicas",5.5,5],["MI535","Anestesiologia e Medicina Intensiva",3,5],
+ ["MI536","Psiquiatria e Saúde Mental",5.5,5],["MI537","Clínica Pediátrica",8,5],["MI538","Epidemiologia Clínica",3,5],["MI539","Medicina Legal",3,5],["MI540","Gastroenterologia",4,5],
+ ["MI541","Competências Clínicas Transversais",3.5,5],["MI542","Terapêutica e Farmacologia Clínica II",2,5],["MI543","Radiologia e Imagem Médica II: Imagem Médica",4,5],
+ ["MI628","Medicina (Prática Clínica)",13,6],["MI629","Cirurgia (Prática Clínica)",9,6],["MI630","Dissertação",10,6],["MI631","Ginecologia/Obstetrícia (Prática Clínica)",6,6],["MI632","Medicina Geral e Familiar (Prática Clínica)",6,6],
+ ["MI633","Pediatria (Prática Clínica)",6,6],["MI634","Psiquiatria (Prática Clínica)",3,6],["MI635","Saúde Pública",3,6],["MI636","Cuidados Paliativos",2,6],
+ ["OPT39","Fisiopatologia Médica (optativa)",2,0]
+];
+const P26 = [
+ ["MI129","Anatomia I",7,1],["MI130","Bioquímica Médica e Estrutura Celular",6,1],["MI131","Genética Molecular e Citogenómica",7,1],["MI132","Introdução à Epidemiologia",4,1],
+ ["MI133","Humanidades em Medicina e Psicologia Médica I",5,1],["MI134","Suporte Básico de Vida e Desfibrilhação Automática Externa",1,1],["MI135","Anatomia II",7,1],["MI136","Metabolismo Humano",7,1],
+ ["MI137","Biologia Celular Molecular",5,1],["MI138","Saúde das Populações",3,1],["MI139","Introdução à Medicina",3,1],["MI140","Psicologia Médica II",3,1],
+ ["MI244","Fisiologia I",8,2],["MI245","Histologia I",5,2],["MI246","Neuroanatomia",6,2],["MI247","DECIDES I",4,2],["MI248","Medicina Preventiva",3,2],["MI249","Anatomia Radiológica",4,2],
+ ["MI250","Fisiologia II",7,2],["MI251","Histologia II. Embriologia",5,2],["MI252","Imunologia Básica",5,2],["MI253","DECIDES II",4,2],["MI254","Propedêutica Geral",4,2],["MI255","Bioética e Deontologia Médica",3,2],
+ ["MI342","Biopatologia I",7,3],["MI343","Farmacologia I",6,3],["MI344","Microbiologia Médica I",4,3],["MI345","Propedêutica Médica",7,3],["MI346","Imunologia Clínica",4,3],
+ ["MI347","Biopatologia II",7,3],["MI348","Farmacologia II",6,3],["MI349","Microbiologia Médica II",4,3],["MI350","Fisiopatologia Médica",4,3],["MI351","Propedêutica Cirúrgica",6,3],["MI352","Genética Clínica",3,3],
+ ["MI445","Doenças Cardiovasculares e Suporte Básico de Vida",9,4],["MI446","Neurologia e Neurocirurgia",6,4],["MI447","Doenças Endócrinas, Nutrição e Metabolismo",5,4],["MI448","Doenças Respiratórias e do Tórax",5,4],
+ ["MI449","Reumatologia",3,4],["MI450","Terapêutica e Farmacologia Clínica I",2,4],["MI451","Cirurgia Geral",7,4],["MI452","Oftalmologia",3,4],["MI453","Ortopedia, Traumatologia e Cirurgia Plástica",6,4],
+ ["MI454","Otorrinolaringologia",3,4],["MI456","Dermatologia e Venereologia",3,4],["MI457","Medicina Geral e Familiar",3,4],["MI458","DECIDES III",3,4],
+ ["MI544","Ginecologia/Obstetrícia",8,5],["MI545","Clínica Pediátrica",8,5],["MI546","Doenças Oncológicas e Hematológicas",5,5],["MI547","Competências Clínicas Transversais",3.5,5],
+ ["MI548","Morbilidade Hospitalar e Iatrogenia",1.5,5],["MI549","Medicina Legal",2,5],["MI550","Terapêutica e Farmacologia Clínica II",2,5],["MI551","Nefrologia e Urologia",6,5],["MI552","Doenças Infeciosas",4,5],
+ ["MI556","Anestesiologia e Medicina Intensiva",3,5],["MI557","Psiquiatria e Saúde Mental",5,5],["MI558","Epidemiologia Clínica",3,5],["MI559","Gastroenterologia",4,5],["MI560","Imagem Médica",3,5],
+ ["MI637","Medicina e Geriatria",12,6],["MI638","Cirurgia (prática clínica)",8,6],["MI639","Ginecologia/Obstetrícia (prática clínica)",6,6],["MI640","Medicina Geral e Familiar (prática clínica)",6,6],
+ ["MI641","Pediatria (prática clínica)",6,6],["MI642","Psiquiatria (prática clínica)",3,6],["MI643","Saúde Pública",3,6],["MI644","Cuidados Paliativos",2,6],
+ ["MI645","Competências Clínicas em Urgência e Emergência",4,6],["MI646","Dissertação",10,6]
+];
+/* regras: dest -> lista de alternativas (cada alternativa = lista de códigos 2021, todas necessárias) */
+const C = {
+ MI129:[["MI119"]],MI130:[["MI120"]],MI132:[["MI122"]],MI131:[["MI121","MI128"]],MI133:[["MI123"]],MI134:[["MI123"]],
+ MI135:[["MI124"]],MI136:[["MI125"]],MI138:[["MI127"]],MI137:[["MI126"]],MI140:[["MI127"]],MI139:[["MI123"]],
+ MI244:[["MI232"]],MI245:[["MI233"]],MI246:[["MI234"]],MI247:[["MI235"]],MI248:[["MI237"]],MI249:[["MI240"]],
+ MI250:[["MI238"]],MI251:[["MI239"]],MI252:[["MI243"]],MI253:[["MI241"]],MI254:[["MI236","MI242"],["MI236","MI123"],["MI242","MI123"]],MI255:[["MI341"]],
+ MI342:[["MI331"]],MI343:[["MI332"]],MI344:[["MI333"]],MI345:[["MI334"]],MI346:[["MI335"]],
+ MI347:[["MI336"]],MI348:[["MI337"]],MI349:[["MI338"]],MI351:[["MI339"]],MI352:[["MI340"]],MI350:[["MI334"],["OPT39","MI331"]],
+ MI445:[["MI432"]],MI446:[["MI433"]],MI447:[["MI434"]],MI448:[["MI435"]],MI449:[["MI436"]],MI451:[["MI437"]],MI452:[["MI438"]],
+ MI453:[["MI439"]],MI454:[["MI440"]],MI456:[["MI441"]],MI450:[["MI442"]],MI457:[["MI443"]],MI458:[["MI444"]],
+ MI544:[["MI531"]],MI551:[["MI532"]],MI552:[["MI533"]],MI546:[["MI534"]],MI556:[["MI535"]],MI557:[["MI536"]],MI545:[["MI537"]],
+ MI558:[["MI538"]],MI549:[["MI539"]],MI559:[["MI540"]],MI547:[["MI541"]],MI550:[["MI542"]],MI560:[["MI543"]],MI548:[["MI541"]],
+ MI637:[["MI628"]],MI638:[["MI629"]],MI646:[["MI630"]],MI639:[["MI631"]],MI640:[["MI632"]],MI641:[["MI633"]],MI642:[["MI634"]],MI643:[["MI635"]],MI644:[["MI636"]],
+ MI645:[]
+};
+const OPT = new Set(["OPC1","OPC4"]);
+const NOTES = {
+ MI445:"Falta decidir se a componente de Suporte Básico de Vida fica abrangida pelo exame de Doenças Cardiovasculares (a proposta é que sim).",
+ MI645:"É uma UC nova, que não existia no plano antigo. A situação de quem estava no 6.º ano em 2025/2026 ainda vai ser decidida."
+};
+const N21 = Object.fromEntries(P21.map(r=>[r[0],{nome:r[1],ects:r[2],ano:r[3]}]));
+const N26 = Object.fromEntries(P26.map(r=>[r[0],{nome:r[1],ects:r[2],ano:r[3]}]));
+const nm21 = c => N21[c].nome;
+const nm26 = c => N26[c].nome;
+const label26 = c => OPT.has(c) ? nm26(c) : `${nm26(c)} (${c})`;
+const label21 = c => `${nm21(c)} (${c})`;
+const esc = s => String(s).replace(/[&<>"]/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const joinPt = arr => arr.length<=1 ? arr.join("") : arr.slice(0,-1).join(", ")+" e "+arr[arr.length-1];
+const exPt = (codes, art) => (art? (codes.length>1?"os exames de ":"o exame de ") : (codes.length>1?"exames de ":"exame de ")) + joinPt(codes.map(nm21));
+const ExPt = codes => (codes.length>1?"Exames de ":"Exame de ");
+const orPt = arr => arr.length<=1 ? arr.join("") : arr.slice(0,-1).join(", ")+" ou "+arr[arr.length-1];
+
+/* ---------- MOTOR ---------- */
+// st: código 2021 -> 'aprovada' | 'atraso' | 'nao'
+function analyse(st, dests, choices){
+  const res = {};
+  const forced = new Set();
+  const single = [], multi = [];
+  for(const d of dests){
+    const alts = C[d];
+    if(!alts || alts.length===0){ res[d]={kind:"new"}; continue; }
+    if(alts.some(a=>a.every(c=>st[c]==="aprovada"))){ res[d]={kind:"ok", via:alts.find(a=>a.every(c=>st[c]==="aprovada"))}; continue; }
+    (alts.length===1?single:multi).push(d);
+  }
+  for(const d of single){
+    const a=C[d][0], miss=a.filter(c=>st[c]!=="aprovada");
+    if(miss.every(c=>st[c]==="atraso")){ miss.forEach(c=>forced.add(c)); res[d]={kind:"exam", via:a, exams:miss}; }
+    else res[d]={kind:"blocked", via:a, lacking:miss.filter(c=>st[c]!=="atraso")};
+  }
+  for(const d of multi){
+    const alts=C[d];
+    const feas=alts.map(a=>({a, miss:a.filter(c=>st[c]!=="aprovada")})).filter(o=>o.miss.every(c=>st[c]==="atraso"));
+    if(!feas.length){ res[d]={kind:"blocked", alts}; continue; }
+    feas.forEach(o=>o.cost=o.miss.filter(c=>!forced.has(c)).length);
+    const min=Math.min(...feas.map(o=>o.cost));
+    const best=feas.filter(o=>o.cost===min);
+    let pick=best[0];
+    if(best.length>1 && min>0){
+      const ch=choices[d]; const found=best.find(o=>o.a.join()===ch);
+      if(!found){ res[d]={kind:"pending", options:best.map(o=>o.a)}; continue; }
+      pick=found;
+      res[d]={kind:"exam", via:pick.a, exams:pick.miss, options:best.map(o=>o.a), allFeasible:feas};
+    } else res[d]={kind:"exam", via:pick.a, exams:pick.miss, allFeasible:feas};
+    pick.miss.forEach(c=>forced.add(c));
+  }
+  return res;
+}
+
+/* ---------- MODO A ---------- */
+/* ---------- FORMULÁRIO DE PEDIDO À UGA ----------
+   FORM_LINK: link público do formulário (Microsoft Forms).
+   PREFILL_SAMPLE: URL pré-preenchido de exemplo, gerado no Forms com 2 opções assinaladas
+   na pergunta das UCs do Plano 2026 e 2 na pergunta dos exames. Enquanto estiver vazio,
+   o botão abre o formulário em branco e a página mostra o que o estudante deve assinalar. */
+const FORM_LINK = "https://forms.cloud.microsoft/e/R9gmkKKMJg";
+const PREFILL_SAMPLE = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=yBuCt8xne0S1eYL3hUF0_JiooqAiEYVGn6iPjCuxaKZUMExMNDBTREdDNjRTT0pORjU2TzJGVVUxRy4u&r3e9290b1d7b04e97a7d8f2f4030557fb=%22%5B%5C%22Introdu%C3%A7%C3%A3o%20%C3%A0%20Medicina%20(MI139)%5C%22%2C%5C%22Fisiologia%20I%20(MI244)%5C%22%5D%22&r22ae71662e48411b8f3443b1d190949b=%22%5B%5C%22Metabolismo%20Humano%20(MI125)%5C%22%2C%5C%22Sa%C3%BAde%20das%20Popula%C3%A7%C3%B5es%20(MI127)%5C%22%5D%22";
+const LABELS26 = new Set(P26.map(r=>`${r[1]} (${r[0]})`));
+const LABELS21 = new Set(P21.map(r=>`${r[1]} (${r[0]})`));
+function prefillUrl(v){
+  if(!PREFILL_SAMPLE) return null;
+  const q=PREFILL_SAMPLE.indexOf("?"); if(q<0) return null;
+  const base=PREFILL_SAMPLE.slice(0,q), parts=PREFILL_SAMPLE.slice(q+1).split("&");
+  // reproduz o formato do Forms (JSON simples ou JSON duplamente codificado)
+  const enc=(val,arr)=>{
+    try{ const j=JSON.parse(val);
+      if(Array.isArray(j)) return JSON.stringify(arr);
+      if(typeof j==="string"){ const j2=JSON.parse(j); if(Array.isArray(j2)) return JSON.stringify(JSON.stringify(arr)); }
+    }catch(e){}
+    return arr.join(",");
+  };
+  let ok26=false, ok21=false;
+  const out=parts.map(pt=>{
+    const i=pt.indexOf("="); if(i<0) return pt;
+    const k=pt.slice(0,i); let val; try{ val=decodeURIComponent(pt.slice(i+1).replace(/\+/g," ")); }catch(e){ return pt; }
+    const has26=[...LABELS26].some(l=>val.includes(l)), has21=[...LABELS21].some(l=>val.includes(l));
+    if(has26 && !ok26){ ok26=true; return k+"="+encodeURIComponent(enc(val,v.INS)); }
+    if(has21 && !ok21){ ok21=true; return k+"="+encodeURIComponent(enc(val,v.EX)); }
+    return pt;
+  });
+  return (ok26&&ok21) ? base+"?"+out.join("&") : null;
+}
+function pedidoTexto(v){
+  return ["PEDIDO DE INSCRIÇÃO — ÉPOCA ESPECIAL II (transição Plano 2021 → Plano 2026)","",
+    "UCs do Plano 2026 em que pretendo inscrever-me:", v.INS.map(x=>"- "+x).join("\n")||"—","",
+    "Exames que vou realizar (UCs do Plano 2021, matéria de 2025/2026):", v.EX.map(x=>"- "+x).join("\n")||"—"].join("\n");
+}
+function sendBox(v, pending, mode){
+  const ready = !pending && v.INS.length>0;
+  const pre = prefillUrl(v);
+  let h=`<div class="send"><h3>Pedir a inscrição à UGA</h3>`;
+  h+=`<p>A inscrição nas UCs do novo plano é feita pela <strong>Unidade de Gestão Académica</strong>. Envia o teu pedido através do formulário${pre?": as UCs em que te tens de inscrever e os exames que vais fazer já vão assinalados.":"."}</p>`;
+  if(pending) h+=`<p><strong>Antes de enviar, escolhe acima o exame/combinação de exames que preferes.</strong></p>`;
+  if(!pre && ready){
+    h+=`<p style="margin-bottom:0"><strong>No formulário, assinala exatamente:</strong></p><p style="margin-top:4px">UCs do Plano 2026: ${esc(joinPt(v.INS))}.<br>Exames: ${esc(joinPt(v.EX))}.</p>`;
+  }
+  const link = pre || FORM_LINK;
+  h+= ready ? `<a class="btn primary" id="send${mode}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${pre?"Abrir formulário preenchido":"Abrir formulário"}</a>`
+            : `<button class="btn primary" type="button" disabled>${pre?"Abrir formulário preenchido":"Abrir formulário"}</button>`;
+  h+=`<button class="btn" type="button" id="copyL${mode}" ${ready?"":"disabled"}>Copiar link do formulário</button>`;
+  h+=`<button class="btn" type="button" id="copyP${mode}" ${ready?"":"disabled"}>Copiar pedido</button>`;
+  h+=`<p class="small">Se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. Confirma os dados antes de submeter.</p></div>`;
+  return h;
+}
+function bindSend(v, mode){
+  const l=document.getElementById("copyL"+mode); if(l) l.onclick=()=>copyText(prefillUrl(v)||FORM_LINK, l);
+  const c=document.getElementById("copyP"+mode); if(c) c.onclick=()=>copyText(pedidoTexto(v), c);
+}
+const stateA = { atraso:new Set(), opt39:"nao", choices:{} };
+function buildListA(){
+  const box=document.getElementById("listA"); box.innerHTML="";
+  for(let y=1;y<=6;y++){
+    const det=document.createElement("details"); det.className="yr";
+    const sm=document.createElement("summary");
+    sm.innerHTML=`<span>${y}.º ano</span><span class="cnt" id="cntA${y}"></span>`;
+    det.appendChild(sm);
+    const g=document.createElement("div"); g.className="ucgrid";
+    P21.filter(r=>r[3]===y).forEach(([c,n])=>{
+      const b=document.createElement("button"); b.className="uc"; b.type="button";
+      b.setAttribute("aria-pressed", stateA.atraso.has(c)?"true":"false");
+      b.innerHTML=`${esc(n)}<small>${c}</small>`;
+      b.onclick=()=>{ stateA.atraso.has(c)?stateA.atraso.delete(c):stateA.atraso.add(c); b.setAttribute("aria-pressed",stateA.atraso.has(c)?"true":"false"); updCnt(); renderA(); };
+      g.appendChild(b);
+    });
+    det.appendChild(g);
+    if(y===3){
+      const o=document.createElement("div"); o.className="optrow";
+      o.innerHTML=`<div class="nm">Fisiopatologia Médica (optativa) <small>OPT39</small></div><p class="hint" style="margin:0 0 6px">Só interessa se fizeste ou tentaste fazer esta optativa. Conta para a UC Fisiopatologia Médica do novo plano.</p><div class="seg" id="opt39" role="group" aria-label="Situação na optativa Fisiopatologia Médica"></div>`;
+      det.appendChild(o);
+    }
+    box.appendChild(det);
+  }
+  buildOpt39();
+  updCnt();
+}
+function updCnt(){
+  for(let y=1;y<=6;y++){ const n=[...stateA.atraso].filter(c=>N21[c].ano===y).length+(y===3&&stateA.opt39==="atraso"?1:0); const el=document.getElementById("cntA"+y); if(el) el.textContent=n?`${n} por fazer`:""; }
+}
+function buildOpt39(){
+  const s=document.getElementById("opt39"); s.innerHTML="";
+  [["aprovada","Fiz e passei"],["atraso","Reprovei, mas tenho frequência"],["nao","Não fiz esta optativa"]].forEach(([v,t])=>{
+    const b=document.createElement("button"); b.type="button"; b.className="s-"+v; b.textContent=t;
+    b.setAttribute("aria-pressed", stateA.opt39===v?"true":"false");
+    b.onclick=()=>{ stateA.opt39=v; buildOpt39(); updCnt(); renderA(); };
+    s.appendChild(b);
+  });
+}
+function statusA(){
+  const st={};
+  P21.forEach(([c])=>{ if(c==="OPT39") return; st[c] = stateA.atraso.has(c)?"atraso":"aprovada"; });
+  st.OPT39 = stateA.opt39;
+  return st;
+}
+function renderA(){
+  const out=document.getElementById("resA");
+  const st=statusA();
+  const late=[...stateA.atraso].concat(stateA.opt39==="atraso"?["OPT39"]:[]);
+  if(!late.length){ out.innerHTML=`<h2>Resultado</h2><p class="empty">Seleciona acima as UCs que ficaram por fazer para veres os exames e as inscrições.</p>`; return; }
+  const dests=Object.keys(C).filter(d=>C[d].some(a=>a.some(c=>st[c]==="atraso")));
+  const r=analyse(st,dests,stateA.choices);
+  // agrupar por exame
+  const byExam={}; late.forEach(c=>byExam[c]=[]);
+  const choiceBlocks=[];
+  for(const d of dests){
+    const x=r[d];
+    if(x.kind==="exam"){
+      x.exams.forEach(e=>{ (byExam[e]=byExam[e]||[]).push(d); });
+      if(x.options) choiceBlocks.push(d);
+    }
+    if(x.kind==="pending") choiceBlocks.push(d);
+  }
+  let h=`<h2>Resultado</h2>`;
+  // escolhas
+  for(const d of choiceBlocks){
+    const x=r[d];
+    const pend=x.kind==="pending";
+    h+=`<div class="box warn"${pend?' style="outline:2px solid var(--yellow)"':''}><strong>Escolhe o exame/combinação de exames para ${esc(nm26(d))}</strong><div class="ucgrid" style="margin-top:8px">`;
+    x.options.forEach(a=>{ const miss=a.filter(c=>st[c]!=="aprovada"); const key=a.join(); h+=`<button type="button" class="uc pickA" data-d="${d}" data-v="${key}" aria-pressed="${!pend&&x.via.join()===key}">${esc(miss.map(nm21).join(" + "))}</button>`; });
+    h+=`</div></div>`;
+  }
+  if(late.some(e=>(byExam[e]||[]).length)) h+=`<p class="hint">Na Época Especial II, tens de te inscrever em <strong>todas</strong> as UCs do Plano 2026 indicadas em baixo.</p>`;
+  h+=`<div class="route">`;
+  const unneeded=[];
+  const pendingDests=dests.filter(d=>r[d].kind==="pending");
+  const pendingExams=new Set(pendingDests.flatMap(d=>r[d].options.flat().filter(c=>st[c]==="atraso")));
+  const insc=new Set(), cred=new Set(), pond=new Set();
+  for(const e of late){
+    const ds=byExam[e]||[];
+    if(!ds.length){ if(!pendingExams.has(e)) unneeded.push(e); continue; }
+    h+=`<div class="exam"><div class="lbl">Exame que vais fazer (matéria de 2025/2026)</div><div class="t">${esc(label21(e))}</div><div class="lbl" style="margin-top:10px">UCs do Plano de 2026 a que dá equivalência:</div><ul class="gives" style="margin-top:4px">`;
+    ds.forEach(d=>{
+      const x=r[d]; const multi=x.via.length>1; if(multi) pond.add(d);
+      const others=x.exams.filter(c=>c!==e);
+      let tags = OPT.has(d) ? `<span class="tag cred">sem inscrição</span>` : ``;
+      OPT.has(d)?cred.add(d):insc.add(d);
+      let extra="";
+      if(others.length) extra+=`<div class="note">Também tens de passar ${esc(exPt(others,true).replace(/^o/,"no").replace(/^os/,"nos"))}.</div>`;
+      if(multi) extra+=`<div class="pondbox"><strong>Ponderação a definir pela regência</strong> entre: ${esc(joinPt(x.via.map(label21)))}.</div>`;
+      if(NOTES[d]) extra+=`<div class="note">${esc(NOTES[d])}</div>`;
+      h+=`<li><strong>${esc(label26(d))}</strong>${tags}${extra}</li>`;
+    });
+    h+=`</ul></div>`;
+  }
+  h+=`</div>`;
+  if(unneeded.length){
+    h+=`<div class="box ok"><strong>Exames que não precisas de fazer</strong>`;
+    unneeded.forEach(e=>{
+      const ds=Object.keys(C).filter(d=>C[d].some(a=>a.includes(e)));
+      const okd=ds.filter(d=>r[d]&&r[d].kind==="ok");
+      h+=`<div>${esc(nm21(e))}: ${okd.length? `a UC nova correspondente (${esc(joinPt(okd.map(label26)))}) já te é dada por outras UCs em que obtiveste aprovação.` : `não é necessário, com o exame que escolheste.`}</div>`;
+    });
+    h+=`</div>`;
+  }
+  const blocked=dests.filter(d=>r[d].kind==="blocked");
+  if(blocked.length){
+    h+=`<div class="box warn"><strong>UCs novas que estes exames não resolvem</strong>`;
+    blocked.forEach(d=>{
+      const x=r[d];
+      const lack=[...new Set((x.lacking||(x.alts||[]).flat()).filter(c=>st[c]!=="aprovada"&&st[c]!=="atraso"))];
+      h+=`<div>${esc(label26(d))}: depende também de ${esc(orPt(lack.map(nm21)))}, que ainda não concluíste. Farás esta UC nova normalmente, durante o ano letivo.</div>`;
+    });
+    h+=`</div>`;
+  }
+  // lista final
+  const exams=late.filter(e=>(byExam[e]||[]).length);
+  pendingDests.forEach(d=>{ if(!OPT.has(d)) insc.add(d); });
+  const vA={ INS:[...insc].sort().map(label26), EX:exams.map(label21) };
+  h+=sendBox(vA, pendingDests.length>0, "A");
+  out.innerHTML=h;
+  bindSend(vA,"A");
+  out.querySelectorAll('.pickA').forEach(b=>b.onclick=()=>{ stateA.choices[b.dataset.d]=b.dataset.v; renderA(); });
+}
+
+/* ---------- MODO B ---------- */
+const stateB = { sel:new Set(), st:{}, choices:{} };
+function buildListB(){
+  const box=document.getElementById("listB"); box.innerHTML="";
+  for(let y=1;y<=6;y++){
+    const det=document.createElement("details"); det.className="yr";
+    const sm=document.createElement("summary");
+    sm.innerHTML=`<span>${y}.º ano</span><span class="cnt" id="cntB${y}"></span>`;
+    det.appendChild(sm);
+    const g=document.createElement("div"); g.className="ucgrid";
+    P26.filter(r=>r[3]===y).forEach(([c,n])=>{
+      const b=document.createElement("button"); b.className="uc"; b.type="button";
+      b.setAttribute("aria-pressed", stateB.sel.has(c)?"true":"false");
+      b.innerHTML=`${esc(n)}<small>${OPT.has(c)?"grupo de optativas":c}</small>`;
+      b.onclick=()=>{ stateB.sel.has(c)?stateB.sel.delete(c):stateB.sel.add(c); b.setAttribute("aria-pressed",stateB.sel.has(c)?"true":"false"); updCntB(); renderB(); };
+      g.appendChild(b);
+    });
+    det.appendChild(g); box.appendChild(det);
+  }
+  updCntB();
+}
+function updCntB(){
+  for(let y=1;y<=6;y++){ const n=[...stateB.sel].filter(c=>N26[c].ano===y).length; const el=document.getElementById("cntB"+y); if(el) el.textContent=n?`${n} selecionada${n>1?"s":""}`:""; }
+}
+function seg(code){
+  const v=stateB.st[code]||"nao";
+  return `<div class="seg" role="group" aria-label="Situação em ${esc(nm21(code))}">`+
+    [["aprovada","Fiz e passei"],["atraso","Reprovei, mas tenho frequência"],["nao","Não fiz / não tenho frequência"]]
+    .map(([k,t])=>`<button type="button" class="s-${k}" data-c="${code}" data-v="${k}" aria-pressed="${v===k}">${t}</button>`).join("")+`</div>`;
+}
+function renderB(){
+  const out=document.getElementById("resB");
+  const sel=[...stateB.sel].sort((a,b)=>P26.findIndex(r=>r[0]===a)-P26.findIndex(r=>r[0]===b));
+  if(!sel.length){ out.innerHTML=`<h2>Resultado</h2><p class="empty">Escolhe acima as UCs do Plano 2026 que te faltam.</p>`; return; }
+  const st={}; P21.forEach(([c])=>st[c]=stateB.st[c]||"nao");
+  let h=`<h2>Resultado</h2><p class="hint">Nas UCs que podes fazer na Época Especial II (caixas amarelas), inscreves-te na própria UC do Plano 2026.</p>`;
+  const insc=new Set(), exams=new Set(), choicesB=[], pendingB=[];
+  for(const d of sel){
+    const alts=C[d];
+    h+=`<div class="panel ucres"><h4>${esc(label26(d))}</h4>`;
+    if(!alts.length){ h+=`<div class="box warn">${esc(NOTES.MI645)}</div></div>`; continue; }
+    const origins=[...new Set(alts.flat())];
+    h+=`<div class="hint" style="margin:0">${alts.length>1?"Podes ter esta UC com qualquer uma destas combinações do plano antigo: "+esc(alts.map(a=>joinPt(a.map(nm21))).join("; ou ")):"Corresponde, no plano antigo, a: "+esc(joinPt(alts[0].map(nm21)))}.</div>`;
+    h+=`<div class="orig">`+origins.map(c=>`<div class="row"><span class="nm">${esc(nm21(c))} <small>${c}</small></span>${seg(c)}</div>`).join("")+`</div>`;
+    const okAlt=alts.find(a=>a.every(c=>st[c]==="aprovada"));
+    if(okAlt){
+      h+=`<div class="box ok"><strong>Já tens esta UC feita, por equivalência</strong>Não precisas de exame: conta a aprovação que já tens em ${esc(joinPt(okAlt.map(nm21)))}.${okAlt.length>1?`<div class="pondbox"><strong>Ponderação a definir pela regência</strong> entre: ${esc(joinPt(okAlt.map(label21)))}.</div>`:""}</div>`;
+    } else {
+      const routes=alts.map(a=>({a, miss:a.filter(c=>st[c]!=="aprovada")}));
+      const feas=routes.filter(o=>o.miss.every(c=>st[c]==="atraso")).sort((x,y)=>x.miss.length-y.miss.length);
+      const infeas=routes.filter(o=>!o.miss.every(c=>st[c]==="atraso"));
+      if(feas.length){
+        // retirar formas dominadas (que exigem os mesmos exames e mais algum)
+        const fz=feas.filter(o=>!feas.some(q=>q!==o && q.miss.length<o.miss.length && q.miss.every(c=>o.miss.includes(c))));
+        const multiF=fz.length>1;
+        const chosen=multiF ? fz.find(o=>o.a.join()===stateB.choices[d]) : fz[0];
+        h+=`<div class="box warn"><strong>Podes fazê-la na Época Especial II</strong>`;
+        if(multiF){
+          h+=`<div style="margin-top:2px">Escolhe o exame/combinação de exames:</div><div class="ucgrid" style="margin-top:6px">`;
+          fz.forEach(o=>h+=`<button type="button" class="uc pickB" data-d="${d}" data-v="${o.a.join()}" aria-pressed="${chosen===o}">${esc(o.miss.map(nm21).join(" + "))}</button>`);
+          h+=`</div>`;
+        }
+        if(chosen){
+          const also=[...new Set(chosen.miss.flatMap(e=>Object.keys(C).filter(x=>x!==d && C[x].length===1 && C[x][0].includes(e))))];
+          h+=`<div style="margin-top:8px">${ExPt(chosen.miss)}<strong>${esc(joinPt(chosen.miss.map(nm21)))}</strong> (matéria de 2025/2026).</div>`;
+          if(chosen.a.length>1) h+=`<div class="pondbox"><strong>Ponderação a definir pela regência</strong> entre: ${esc(joinPt(chosen.a.map(label21)))}.</div>`;
+          if(also.length) h+=`<div class="note">O mesmo exame dá também equivalência a ${esc(joinPt(also.map(label26)))}.</div>`;
+        }
+        h+=`</div>`;
+        if(!OPT.has(d)) insc.add(d);
+        if(chosen){ chosen.miss.forEach(e=>exams.add(e)); if(multiF) choicesB.push([d,chosen.miss]); }
+        else pendingB.push(d);
+      }
+      if(infeas.length){
+        h+=`<div class="box bad"><strong>${feas.length?"Formas que não podes usar":"Não é possível fazer esta UC na Época Especial II"}</strong>`;
+        infeas.forEach(o=>{ const lack=o.miss.filter(c=>st[c]!=="atraso"); h+=`<div>Por ${esc(joinPt(o.a.map(nm21)))}: precisarias de ${esc(joinPt(lack.map(nm21)))}, mas indicaste que não a fizeste ou não tens frequência.</div>`; });
+        if(!feas.length) h+=`<div style="margin-top:6px">Terás de fazer ${esc(nm26(d))} normalmente, durante o ano letivo.</div>`;
+        h+=`</div>`;
+      }
+    }
+    if(NOTES[d]) h+=`<div class="note">${esc(NOTES[d])}</div>`;
+    h+=`</div>`;
+  }
+  const vB={ INS:[...insc].map(label26), EX:[...exams].map(label21) };
+  if(insc.size) h+=sendBox(vB, pendingB.length>0, "B");
+  out.innerHTML=h;
+  if(insc.size) bindSend(vB,"B");
+  out.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{ stateB.st[b.dataset.c]=b.dataset.v; renderB(); });
+  out.querySelectorAll('.pickB').forEach(b=>b.onclick=()=>{ stateB.choices[b.dataset.d]=b.dataset.v; renderB(); });
+}
+
+/* ---------- UTIL ---------- */
+function copyText(t, btn){
+  const done=()=>{ const o=btn.textContent; btn.textContent="Copiado"; setTimeout(()=>btn.textContent=o,1800); };
+  try{ navigator.clipboard.writeText(t).then(done).catch(()=>fallback()); }catch(e){ fallback(); }
+  function fallback(){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy"); done();}catch(e){} ta.remove(); }
+}
+function setMode(m){
+  document.getElementById("mA").setAttribute("aria-pressed", m==="A");
+  document.getElementById("mB").setAttribute("aria-pressed", m==="B");
+  document.getElementById("secA").hidden = m!=="A";
+  document.getElementById("secB").hidden = m!=="B";
+}
+document.getElementById("mA").onclick=()=>setMode("A");
+document.getElementById("mB").onclick=()=>setMode("B");
+buildListA(); renderA(); buildListB(); renderB();
+</script>
+</body>
+</html>
