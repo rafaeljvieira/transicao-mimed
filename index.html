@@ -127,6 +127,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:28px}
 </header>
 
 <main class="wrap">
+  <div class="box warn" style="margin-top:20px;border-left:6px solid var(--ink)"><strong>Quem pode usar a Época Especial II</strong><div>A Época Especial II destina-se <strong>apenas a estudantes com estatuto especial</strong> (por exemplo, trabalhador-estudante ou dirigente associativo). Se não tens estatuto, não te podes inscrever nesta época.</div></div>
   <div class="mode" role="group" aria-label="Modo">
     <button id="mA" aria-pressed="true">Tenho UCs do plano antigo por fazer</button>
     <button id="mB" aria-pressed="false">Quero saber como fazer UCs do novo plano</button>
@@ -152,6 +153,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:28px}
   <details class="rules">
     <summary>Como funciona e o que precisas de saber</summary>
     <ul>
+      <li>A Época Especial II destina-se <strong>apenas a estudantes com estatuto especial</strong>.</li>
       <li>Os exames são sempre sobre a <strong>matéria e as regras de avaliação de 2025/2026</strong>, ou seja, da UC do plano antigo que te falta. Não tens de estudar matéria nova.</li>
       <li>Como as UCs do plano antigo já não existem, tens de te inscrever na Época Especial II nas <strong>UCs do novo plano</strong> indicadas no resumo. A nota do exame é lançada em cada uma delas.</li>
       <li>Se um exame der equivalência a várias UCs, fazes esse exame <strong>uma única vez</strong>.</li>
@@ -217,8 +219,8 @@ const C = {
 };
 const OPT = new Set(["OPC1","OPC4"]);
 const NOTES = {
- MI445:"Falta decidir se a componente de Suporte Básico de Vida fica abrangida pelo exame de Doenças Cardiovasculares (a proposta é que sim).",
- MI645:"É uma UC nova, que não existia no plano antigo. A situação de quem estava no 6.º ano em 2025/2026 ainda vai ser decidida."
+ MI445:"O exame de Doenças Cardiovasculares dá equivalência à UC completa, incluindo a componente de Suporte Básico de Vida.",
+ MI645:"É uma UC nova, que não existia no plano antigo, e não tem equivalência: tens de a fazer normalmente, durante o ano letivo."
 };
 const N21 = Object.fromEntries(P21.map(r=>[r[0],{nome:r[1],ects:r[2],ano:r[3]}]));
 const N26 = Object.fromEntries(P26.map(r=>[r[0],{nome:r[1],ects:r[2],ano:r[3]}]));
