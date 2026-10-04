@@ -85,6 +85,11 @@ details.yr[open]{padding-bottom:12px}
 .send .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
 .send .btn[disabled]{opacity:.45;cursor:not-allowed}
 .send .small{font-size:.82rem}
+.copyinfo{margin:10px 0 0;text-align:right;font-size:.85rem}
+.copyinfo .note{display:inline;margin:0;font-size:.82rem}
+.linkbtn{font:inherit;font-size:.85rem;background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.linkbtn:hover{color:var(--ink)}
+.linkbtn[disabled]{opacity:.45;cursor:not-allowed;text-decoration:none}
 .final li{margin:4px 0}
 .btn{font:inherit;font-weight:500;font-size:.9rem;padding:9px 14px;border-radius:4px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;margin-top:12px}
 .choice{margin:8px 0 0}
@@ -318,13 +323,20 @@ function sendBox(v, pending, mode){
   h+= ready ? `<a class="btn primary" id="send${mode}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${pre?"Abrir formulário preenchido":"Abrir formulário"}</a>`
             : `<button class="btn primary" type="button" disabled>${pre?"Abrir formulário preenchido":"Abrir formulário"}</button>`;
   h+=`<button class="btn" type="button" id="copyL${mode}" ${ready?"":"disabled"}>Copiar link do formulário</button>`;
-  h+=`<button class="btn" type="button" id="copyP${mode}" ${ready?"":"disabled"}>Copiar informação</button>`;
-  h+=`<p class="small">Só se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. «Copiar informação» copia a lista das UCs em que te vais inscrever e dos exames que vais fazer, para guardares ou consultares mais tarde. Confirma os dados antes de submeter.</p></div>`;
+  h+=`<p class="small">Só se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. Confirma os dados antes de submeter.</p></div>`;
   return h;
 }
 function bindSend(v, mode){
   const l=document.getElementById("copyL"+mode); if(l) l.onclick=()=>copyText(prefillUrl(v)||FORM_LINK, l);
-  const c=document.getElementById("copyP"+mode); if(c) c.onclick=()=>copyText(pedidoTexto(v), c);
+  const out=document.getElementById("res"+mode);
+  const cards=out.querySelectorAll(mode==="A"?".exam":".panel");
+  const ready=!out.querySelector('.send .btn.primary[disabled]') && v.INS.length>0;
+  if(cards.length && ready){
+    const d=document.createElement("div"); d.className="copyinfo";
+    d.innerHTML=`<button class="linkbtn" type="button">Copiar informação</button>`;
+    cards[cards.length-1].appendChild(d);
+    const c=d.querySelector("button"); c.onclick=()=>copyText(pedidoTexto(v), c);
+  }
 }
 const stateA = { atraso:new Set(), opt39:"nao", choices:{} };
 function buildListA(){
