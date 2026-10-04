@@ -309,7 +309,7 @@ function sendBox(v, pending, mode){
   const ready = !pending && v.INS.length>0;
   const pre = prefillUrl(v);
   let h=`<div class="send"><h3>Pedir a inscrição à UGA</h3>`;
-  h+=`<p>A inscrição nas UCs do novo plano é feita pela <strong>Unidade de Gestão Académica</strong>. Envia o teu pedido através do formulário${pre?": as UCs em que te tens de inscrever e os exames que vais fazer já vão assinalados.":"."}</p>`;
+  h+=`<p>A inscrição nas UCs do novo plano é feita pela <strong>Unidade de Gestão Académica</strong>. Para enviares o teu pedido, clica em <strong>«${pre?"Abrir formulário preenchido":"Abrir formulário"}»</strong>${pre?": o formulário abre com as UCs em que te tens de inscrever e os exames que vais fazer já assinalados. Só tens de completar os teus dados e submeter.":"."}</p>`;
   if(pending) h+=`<p><strong>Antes de enviar, escolhe acima o exame/combinação de exames que preferes.</strong></p>`;
   if(!pre && ready){
     h+=`<p style="margin-bottom:0"><strong>No formulário, assinala exatamente:</strong></p><p style="margin-top:4px">UCs do Plano 2026: ${esc(joinPt(v.INS))}.<br>Exames: ${esc(joinPt(v.EX))}.</p>`;
@@ -318,8 +318,8 @@ function sendBox(v, pending, mode){
   h+= ready ? `<a class="btn primary" id="send${mode}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${pre?"Abrir formulário preenchido":"Abrir formulário"}</a>`
             : `<button class="btn primary" type="button" disabled>${pre?"Abrir formulário preenchido":"Abrir formulário"}</button>`;
   h+=`<button class="btn" type="button" id="copyL${mode}" ${ready?"":"disabled"}>Copiar link do formulário</button>`;
-  h+=`<button class="btn" type="button" id="copyP${mode}" ${ready?"":"disabled"}>Copiar pedido</button>`;
-  h+=`<p class="small">Se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. Confirma os dados antes de submeter.</p></div>`;
+  h+=`<button class="btn" type="button" id="copyP${mode}" ${ready?"":"disabled"}>Copiar informação</button>`;
+  h+=`<p class="small">Só se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. «Copiar informação» copia a lista das UCs em que te vais inscrever e dos exames que vais fazer, para guardares ou consultares mais tarde. Confirma os dados antes de submeter.</p></div>`;
   return h;
 }
 function bindSend(v, mode){
