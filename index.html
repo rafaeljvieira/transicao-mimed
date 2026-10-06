@@ -323,7 +323,7 @@ function sendBox(v, pending, mode){
   h+= ready ? `<a class="btn primary" id="send${mode}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${pre?"Abrir formulário preenchido":"Abrir formulário"}</a>`
             : `<button class="btn primary" type="button" disabled>${pre?"Abrir formulário preenchido":"Abrir formulário"}</button>`;
   h+=`<button class="btn" type="button" id="copyL${mode}" ${ready?"":"disabled"}>Copiar link do formulário</button>`;
-  h+=`<p class="small">Só se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. Confirma os dados antes de submeter.</p></div>`;
+  h+=`<p class="small"><strong>Não partilhes este link com colegas:</strong> é gerado a partir das tuas seleções acima e só serve para a tua situação. Cada estudante deve usar o simulador e abrir o seu próprio formulário.</p><p class="small">Se o formulário não abrir, usa «Copiar link do formulário» e cola o link no navegador. Confirma os dados antes de submeter.</p></div>`;
   return h;
 }
 function bindSend(v, mode){
