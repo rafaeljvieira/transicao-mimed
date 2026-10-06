@@ -138,7 +138,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:28px}
   <!-- MODO A -->
   <section id="secA">
     <h2>Que UCs do plano antigo (2021) ficaram por fazer?</h2>
-    <p class="hint">Abre cada ano e seleciona apenas as UCs a que <strong>reprovaste, mas em que tens frequência</strong>. Ter frequência significa que cumpriste os requisitos da UC (por exemplo, assiduidade e/ou nota mínima na avaliação distribuída) para ser admitido a exame final. Todas as UCs que não selecionares contam como concluídas.</p>
+    <p class="hint">Abre cada ano e seleciona apenas as UCs a que <strong>reprovaste, mas em que ficaste admitido a exame</strong>, isto é, em que cumpriste os critérios definidos na ficha da UC (por exemplo, assiduidade e, nalgumas UCs, nota mínima na avaliação distribuída). Todas as UCs que não selecionares contam como concluídas.</p>
     <div id="listA"></div>
 
     <div id="resA"></div>
@@ -156,6 +156,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:28px}
     <summary>Como funciona e o que precisas de saber</summary>
     <ul>
       <li>A Época Especial II destina-se <strong>apenas a estudantes com estatuto especial</strong>: trabalhador-estudante, dirigente associativo, estudante atleta, estudante bombeiro, pai/mãe estudante ou estudante com necessidades educativas especiais.</li>
+      <li>O simulador não verifica se cumpres os critérios de admissão a exame: seleciona apenas as UCs em que ficaste admitido, de acordo com a ficha de cada UC.</li>
       <li>Os exames são sempre sobre a <strong>matéria e as regras de avaliação de 2025/2026</strong>, ou seja, da UC do plano antigo que te falta. Não tens de estudar matéria nova.</li>
       <li>Como as UCs do plano antigo já não existem, tens de te inscrever na Época Especial II nas <strong>UCs do novo plano</strong> indicadas no resumo. A nota do exame é lançada em cada uma delas.</li>
       <li>Se um exame der equivalência a várias UCs, fazes esse exame <strong>uma única vez</strong>.</li>
@@ -370,7 +371,7 @@ function updCnt(){
 }
 function buildOpt39(){
   const s=document.getElementById("opt39"); s.innerHTML="";
-  [["aprovada","Fiz e passei"],["atraso","Reprovei, mas tenho frequência"],["nao","Não fiz esta optativa"]].forEach(([v,t])=>{
+  [["aprovada","Fiz e passei"],["atraso","Reprovei, mas fiquei admitido a exame"],["nao","Não fiz esta optativa"]].forEach(([v,t])=>{
     const b=document.createElement("button"); b.type="button"; b.className="s-"+v; b.textContent=t;
     b.setAttribute("aria-pressed", stateA.opt39===v?"true":"false");
     b.onclick=()=>{ stateA.opt39=v; buildOpt39(); updCnt(); renderA(); };
@@ -490,7 +491,7 @@ function updCntB(){
 function seg(code){
   const v=stateB.st[code]||"nao";
   return `<div class="seg" role="group" aria-label="Situação em ${esc(nm21(code))}">`+
-    [["aprovada","Fiz e passei"],["atraso","Reprovei, mas tenho frequência"],["nao","Não fiz / não tenho frequência"]]
+    [["aprovada","Fiz e passei"],["atraso","Reprovei, mas fiquei admitido a exame"],["nao","Não fiz / não fiquei admitido a exame"]]
     .map(([k,t])=>`<button type="button" class="s-${k}" data-c="${code}" data-v="${k}" aria-pressed="${v===k}">${t}</button>`).join("")+`</div>`;
 }
 function renderB(){
@@ -538,7 +539,7 @@ function renderB(){
       }
       if(infeas.length){
         h+=`<div class="box bad"><strong>${feas.length?"Formas que não podes usar":"Não é possível fazer esta UC na Época Especial II"}</strong>`;
-        infeas.forEach(o=>{ const lack=o.miss.filter(c=>st[c]!=="atraso"); h+=`<div>Por ${esc(joinPt(o.a.map(nm21)))}: precisarias de ${esc(joinPt(lack.map(nm21)))}, mas indicaste que não a fizeste ou não tens frequência.</div>`; });
+        infeas.forEach(o=>{ const lack=o.miss.filter(c=>st[c]!=="atraso"); h+=`<div>Por ${esc(joinPt(o.a.map(nm21)))}: precisarias de ${esc(joinPt(lack.map(nm21)))}, mas indicaste que não a fizeste ou não ficaste admitido a exame.</div>`; });
         if(!feas.length) h+=`<div style="margin-top:6px">Terás de fazer ${esc(nm26(d))} normalmente, durante o ano letivo.</div>`;
         h+=`</div>`;
       }
